@@ -1,9 +1,16 @@
+/* A Simple Text Editor for Linux Terminal and Windows Command Prompt.
+ * Author philip0000000
+ * MIT license
+ *
+ * g++ for linux
+ * vc++ for windows
+ */
+
 #include <iostream>
-#include <fstream>
+#include <fstream> MIT license 
 #include <vector>
 #include <string>
 #include <iterator>
-
 
 // ===( global variables )===
 std::string g_FileName;
@@ -93,7 +100,7 @@ void SetCursorPosition(int x, int y)
 {
     SetConsoleCursorPosition(hStdout, g_posCursor);
 
-    COORD pos = { x, y };
+    COORD pos = { (SHORT)x, (SHORT)y };
     if (FillConsoleOutputCharacterA(hStdout, ASCII_EXTENDED_SQUARE, 1, pos, &BytesWritten) == 0)
         exit(1);
 }
@@ -159,6 +166,48 @@ void ClearScreen()
 {
     FillConsoleOutputCharacter(hStdout, ' ', cells, tl, &written);
     FillConsoleOutputAttribute(hStdout, s.wAttributes, cells, tl, &written);
+}
+
+#define READ_Ä -60
+#define READ_Ö -42
+#define READ_Å -59
+#define READ_ä -28
+#define READ_ö -10
+#define READ_å -27
+#define PRINT_Ä (unsigned int)142
+#define PRINT_Ö (unsigned int)153
+#define PRINT_Å (unsigned int)143
+#define PRINT_ä (unsigned int)132
+#define PRINT_ö (unsigned int)148
+#define PRINT_å (unsigned int)134
+void ParseStr(std::string &str)
+{
+    for (int i = 0; i < str.length(); i++)
+    {
+        switch (str[i])
+        {
+            case READ_Ä:
+                str[i] = PRINT_Ä;
+                break;
+            case READ_Ö:
+                str[i] = PRINT_Ö;
+                break;
+            case READ_Å:
+                str[i] = PRINT_Å;
+                break;
+            case READ_ä:
+                str[i] = PRINT_ä;
+                break;
+            case READ_ö:
+                str[i] = PRINT_ö;
+                break;
+            case READ_å:
+                str[i] = PRINT_å;
+                break;
+            default:
+                break;
+        }
+    }
 }
 
 #else // linux
@@ -253,14 +302,14 @@ int GetKey()
                 {
                     switch (seq[1])
                     {
-                        case '5':
-                            return ActionKey::PAGE_UP;
-                            break;
-                        case '6':
-                            return ActionKey::PAGE_DOWN;
-                            break;
-                        default:
-                            break;
+                    case '5':
+                        return ActionKey::PAGE_UP;
+                        break;
+                    case '6':
+                        return ActionKey::PAGE_DOWN;
+                        break;
+                    default:
+                        break;
                     }
                 }
             }
@@ -268,20 +317,20 @@ int GetKey()
             {
                 switch (seq[1])
                 {
-                    case 'A':
-                        return ActionKey::ARROW_UP;
-                        break;
-                    case 'B':
-                        return ActionKey::ARROW_DOWN;
-                        break;
-                    case 'C':
-                        return ActionKey::ARROW_RIGHT;
-                        break;
-                    case 'D':
-                        return ActionKey::ARROW_LEFT;
-                        break;
-                    default:
-                        break;
+                case 'A':
+                    return ActionKey::ARROW_UP;
+                    break;
+                case 'B':
+                    return ActionKey::ARROW_DOWN;
+                    break;
+                case 'C':
+                    return ActionKey::ARROW_RIGHT;
+                    break;
+                case 'D':
+                    return ActionKey::ARROW_LEFT;
+                    break;
+                default:
+                    break;
                 }
             }
         }
@@ -358,6 +407,10 @@ void Initialize()
     getWindowSize(&g_height, &g_width);
 }
 
+void ParseStr(std::string &str)
+{
+}
+
 #endif
 
 /**************************************************************************/
@@ -377,6 +430,10 @@ void ReadFile()
             g_File.push_back("\r"); // new line
     }
 
+    // Add empty string if the file is empty
+    if (g_File.size() == 0)
+        g_File.push_back(std::string());
+
     fileIn.close();
 }
 
@@ -395,12 +452,16 @@ void RefreshScreen()
         g_PrintFromX--;
 
     ClearScreen();
+    // Print screen
     for (int n = 0; n < g_File.size() && n < g_height - 1; n++)
     {
         if (g_File[g_PrintFromLine + n].size() > g_PrintFromX)
-            std::cout << g_File[g_PrintFromLine + n].substr(g_PrintFromX, g_width - 1) << "\n";
-        else
-            std::cout << "\n";
+        {
+            std::string str = g_File[g_PrintFromLine + n].substr(g_PrintFromX, g_width - 1);
+            ParseStr(str);
+            std::cout << str;
+        }
+        std::cout << "\n";
     }
     SetCursorPosition(g_CursorPositionX, g_CursorLine - g_PrintFromLine);
 }
@@ -412,7 +473,6 @@ bool ProcessKeypress()
     switch (c)
     {
         case NO_INPUT:
-            return true;
             break;
         case ESC_KEY:
             ClearScreen();
@@ -426,7 +486,7 @@ bool ProcessKeypress()
                     g_PrintFromLine--;
                 // if new line is bigger, make x position smaller
                 if (g_CursorPositionX > g_File[g_CursorLine].length() - 1)
-                    g_CursorPositionX = g_File[g_CursorLine].length() - 1;
+                    g_CursorPositionX = (int)(g_File[g_CursorLine].length() - 1);
             }
             break;
         case ARROW_DOWN:
@@ -437,7 +497,7 @@ bool ProcessKeypress()
                     g_PrintFromLine++;
                 // if new line is bigger, make x position smaller
                 if (g_CursorPositionX > g_File[g_CursorLine].length() - 1)
-                    g_CursorPositionX = g_File[g_CursorLine].length() - 1;
+                    g_CursorPositionX = (int)(g_File[g_CursorLine].length() - 1);
             }
             break;
         case ARROW_LEFT:
@@ -451,7 +511,7 @@ bool ProcessKeypress()
                     g_CursorLine--;
                     if (g_CursorLine < g_PrintFromLine)
                         g_PrintFromLine--;
-                    g_CursorPositionX = g_File[g_CursorLine].length() - 1;
+                    g_CursorPositionX = (int)(g_File[g_CursorLine].length() - 1);
                 }
             }
             break;
@@ -481,29 +541,29 @@ bool ProcessKeypress()
                 g_CursorLine = 0;
             // if new line is bigger, make x position smaller
             if (g_CursorPositionX > g_File[g_CursorLine].length() - 1)
-                g_CursorPositionX = g_File[g_CursorLine].length() - 1;
+                g_CursorPositionX = (int)(g_File[g_CursorLine].length() - 1);
             break;
         case PAGE_DOWN:
             g_PrintFromLine += g_height;
             if (g_PrintFromLine > g_File.size() - g_height || g_PrintFromLine > g_File.size() - 1)
             {
-                g_PrintFromLine = g_File.size() - g_height;
+                g_PrintFromLine = (int)(g_File.size() - g_height);
                 if (g_PrintFromLine < 0)
-                    g_PrintFromLine = g_File.size() - 1;
+                    g_PrintFromLine = (int)(g_File.size() - 1);
             }
             g_CursorLine += g_height;
             if (g_CursorLine > g_File.size() - 1)
-                g_CursorLine = g_File.size() - 1;
+                g_CursorLine = (int)(g_File.size() - 1);
             // if new line is bigger, make x position smaller
             if (g_CursorPositionX > g_File[g_CursorLine].length() - 1)
-                g_CursorPositionX = g_File[g_CursorLine].length() - 1;
+                g_CursorPositionX = (int)(g_File[g_CursorLine].length() - 1);
             break;
         case BACKSPACE:
             if (g_CursorPositionX == 0)
             {
                 if (g_CursorLine > 0)
                 {
-                    g_CursorPositionX = g_File[g_CursorLine - 1].length() - 1; // set posistion
+                    g_CursorPositionX = (int)(g_File[g_CursorLine - 1].length() - 1); // set posistion
                     g_File[g_CursorLine - 1].pop_back(); // remove '\r'
                     g_File[g_CursorLine - 1] += g_File[g_CursorLine]; // add deleted line
                     g_File.erase(g_File.begin() + g_CursorLine); // delete line
@@ -551,8 +611,11 @@ bool ProcessKeypress()
             SaveFile();
             break;
         default: // add character
-            g_File[g_CursorLine].insert(g_CursorPositionX, 1, c);
-            g_CursorPositionX++;
+            if (c != 0)
+            {
+                g_File[g_CursorLine].insert(g_CursorPositionX, 1, c);
+                g_CursorPositionX++;
+            }
             break;
     }
 
@@ -567,15 +630,12 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // save file name
-    g_FileName.append(argv[1]);
-    ReadFile(); // read file
-
+    g_FileName.append(argv[1]); // save file name
+    ReadFile();                 // read file
     Initialize();
 
-    bool NotExit = true;
-
     // main loop
+    bool NotExit = true;
     while (NotExit == true)
     {
         RefreshScreen();
