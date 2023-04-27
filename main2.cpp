@@ -70,9 +70,8 @@ int main() {
     OpenFile(filename, lines);
 
     while (true) {
-        std::cout << "> "; // Print a prompt to the screen
-
         // Read a command from the user
+        std::cout << "> "; // Print a prompt to the screen
         std::string command;
         std::getline(std::cin, command);
 
