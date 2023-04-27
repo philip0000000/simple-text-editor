@@ -75,7 +75,6 @@ int main() {
         // Read a command from the user
         std::string command;
         std::getline(std::cin, command);
-        //std::cin >> command;
 
         if (command == "help")
             std::cout << "Available commands: help, show all, show, edit, open, save, exit" << std::endl;
