@@ -1,7 +1,5 @@
 # simple-text-editor
-A simple text editor for linux terminal and windows command prompt
+A Simple Text Editor for Linux Terminal and Windows Command Prompt.
 
-project is under development
-
-g++ for linux,
+g++ for linux, <br>
 vc++ for windows
