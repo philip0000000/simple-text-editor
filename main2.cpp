@@ -71,7 +71,7 @@ int main() {
 
     while (true) {
         // Read a command from the user
-        std::cout << "> "; // Print a prompt to the screen
+        std::cout << "> "; // Print prompt to the screen
         std::string command;
         std::getline(std::cin, command);
 
