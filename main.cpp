@@ -7,7 +7,7 @@
  */
 
 #include <iostream>
-#include <fstream> MIT license 
+#include <fstream>
 #include <vector>
 #include <string>
 #include <iterator>
